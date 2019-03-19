@@ -1,0 +1,6 @@
+if(!strcmp(argv[1], "tcp"))
+        protocol = 0;
+    else if(!strcmp(argv[1], "udp"))
+        protocol = 1;
+    if(!strcmp(argv[2], "send"))
+        action = 0;
