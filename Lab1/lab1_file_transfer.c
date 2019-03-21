@@ -31,11 +31,6 @@ void TCP_server(char ip[20], int portno, char path[100]){
     time_t rawtime;
     struct tm * timeinfo;
 
-    // if (argc < 2) {
-    //     fprintf(stderr,"ERROR, no port provided\n");
-    //     exit(1);
-    // }
-
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
        error("ERROR opening socket");
@@ -59,7 +54,7 @@ void TCP_server(char ip[20], int portno, char path[100]){
     if (lstat(path, &filestat) < 0){
 		exit(1);
 	}
-	// printf("The file size is %lu bytes\n", filestat.st_size);
+	printf("The file size is %lu bytes\n", filestat.st_size);
     FILE *fp = fopen(path, "rb");
     if(fp == NULL){
         printf("Cannot open this file.\n");
@@ -81,6 +76,7 @@ void TCP_server(char ip[20], int portno, char path[100]){
 		numbytes = write(newsockfd, buffer, numbytes);
         total += numbytes;
         percent =(int)((float)total / (float)filestat.st_size * 100);
+        //percent =100 * total / filestat.st_size;
         if(percent == five){
             time ( &rawtime );
             timeinfo = localtime ( &rawtime );
@@ -109,10 +105,8 @@ void TCP_client(char ip[20], int portno, char path[100]){
     char message[BUFFERSIZE];
     char filename[BUFFERSIZE];
     FILE *fp;
-    // if (argc < 3) {
-    //    fprintf(stderr,"usage %s hostname port\n", argv[0]);
-    //    exit(0);
-    // }
+    struct stat filestat;
+
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
         error("ERROR opening socket");
@@ -148,13 +142,16 @@ void TCP_client(char ip[20], int portno, char path[100]){
 		numbytes = fwrite(buffer, sizeof(char), numbytes, fp);
 		//printf("fwrite %d bytesn\n", numbytes);
     }
-    printf("\n");
 
     // n = write(sockfd,buffer,strlen(buffer));
     // if (n < 0) 
     //      error("ERROR writing to socket");
         
     fclose(fp);
+    if (lstat(filename, &filestat) < 0){
+		exit(1);
+	}
+	printf("Received file size is %lu bytes\n", filestat.st_size);
     close(sockfd);
     return;
 }
