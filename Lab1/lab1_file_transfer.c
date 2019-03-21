@@ -10,6 +10,7 @@
 #include <netdb.h> 
 #include <arpa/inet.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #define BUFFERSIZE 1024
 
@@ -23,10 +24,12 @@ void TCP_server(char ip[20], int portno, char path[100]){
     int sockfd, newsockfd;
     socklen_t clilen;
     char buffer[BUFFERSIZE];
+    char message[BUFFERSIZE];
     struct sockaddr_in serv_addr, cli_addr;
     int n;
-    char message[BUFFERSIZE];
     struct stat filestat;
+    time_t rawtime;
+    struct tm * timeinfo;
 
     // if (argc < 2) {
     //     fprintf(stderr,"ERROR, no port provided\n");
@@ -51,22 +54,40 @@ void TCP_server(char ip[20], int portno, char path[100]){
         error("ERROR on accept");
     bzero(buffer,BUFFERSIZE);
 
+    long int total = 0;
+    int percent = 0;
     if (lstat(path, &filestat) < 0){
 		exit(1);
 	}
+	// printf("The file size is %lu bytes\n", filestat.st_size);
     FILE *fp = fopen(path, "rb");
-	printf("The file size is %lu bytes\n", filestat.st_size);
     if(fp == NULL){
         printf("Cannot open this file.\n");
         return;
     }
-
+    sprintf(message, "Sending file: %s", path);
+    n = write(newsockfd, message, sizeof(message));
+    if (n < 0) error("ERROR writing to socket");
+    strcpy(message, "");
+    
     int numbytes = 0;
+    int five = 0;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    printf("Progress: %d%%\t%d/%d/%d %d:%d:%d\n", (int)percent, timeinfo->tm_year+1900, timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+    five += 5;
     while(!feof(fp)){
         numbytes = fread(buffer, sizeof(char), sizeof(buffer), fp);
-        printf("fread %d bytes, ", numbytes);
 		numbytes = write(newsockfd, buffer, numbytes);
-		printf("Sending %d bytesn\n",numbytes);
+        total += numbytes;
+        percent =(int)((float)total / (float)filestat.st_size * 100);
+        if(percent == five){
+            time ( &rawtime );
+            timeinfo = localtime ( &rawtime );
+            // printf ( "The current date/time is: %s", asctime (timeinfo) );
+            printf("Progress: %d%%\t%d/%d/%d %d:%d:%d\n", (int)percent, timeinfo->tm_year+1900, timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+            five += 5;
+        }
     }
 
     // n = read(newsockfd,buffer,BUFFERSIZE-1);
@@ -81,12 +102,12 @@ void TCP_server(char ip[20], int portno, char path[100]){
 }
 
 void TCP_client(char ip[20], int portno, char path[100]){
-
     int sockfd, n, numbytes;
     struct sockaddr_in serv_addr;
     struct hostent *server;
     char buffer[BUFFERSIZE];
     char message[BUFFERSIZE];
+    char filename[BUFFERSIZE];
     FILE *fp;
     // if (argc < 3) {
     //    fprintf(stderr,"usage %s hostname port\n", argv[0]);
@@ -108,30 +129,31 @@ void TCP_client(char ip[20], int portno, char path[100]){
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
 
-    
-    if((fp = fopen("../gsm-gprs.pptx", "wb")) == NULL){
+    n = read(sockfd, message, sizeof(message));
+    if (n < 0) error("ERROR reading from socket");
+    printf("%s\n", message);
+    sscanf(message, "Sending file: %s", filename);
+    // printf("%s\n", filename);
+
+    if((fp = fopen(filename, "wb")) == NULL){
         perror("connect");
 		exit(1);
     }
     while(1){
         numbytes = read(sockfd, buffer, sizeof(buffer));
-        printf("read %d bytes, ", numbytes);
+        //printf("read %d bytes, ", numbytes);
 		if(numbytes == 0){
 			break;
 		}
 		numbytes = fwrite(buffer, sizeof(char), numbytes, fp);
-		printf("fwrite %d bytesn\n", numbytes);
+		//printf("fwrite %d bytesn\n", numbytes);
     }
     printf("\n");
-    // printf("Please enter the message: ");
-    // bzero(buffer,BUFFERSIZE);
-    // fgets(buffer,BUFFERSIZE,stdin);
-    
+
     // n = write(sockfd,buffer,strlen(buffer));
     // if (n < 0) 
     //      error("ERROR writing to socket");
-    
-    
+        
     fclose(fp);
     close(sockfd);
     return;
