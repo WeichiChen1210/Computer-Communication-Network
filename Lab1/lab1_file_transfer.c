@@ -11,8 +11,14 @@
 #include <arpa/inet.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <errno.h>
 
 #define BUFFERSIZE 1024
+#define ERR_EXIT(m) \
+    do { \
+        perror(m); \
+        exit(EXIT_FAILURE); \
+    } while (0)
 
 void error(const char *msg)
 {
@@ -55,21 +61,27 @@ void TCP_server(char ip[20], int portno, char path[100]){
 		exit(1);
 	}
 	printf("The file size is %lu bytes\n", filestat.st_size);
+    
     FILE *fp = fopen(path, "rb");
     if(fp == NULL){
         printf("Cannot open this file.\n");
         return;
     }
+
     sprintf(message, "Sending file: %s", path);
     n = write(newsockfd, message, sizeof(message));
     if (n < 0) error("ERROR writing to socket");
     strcpy(message, "");
-    
+    n = read(newsockfd, message, sizeof(message));
+    if (n < 0 || strcmp(message, "OK")) error("ERROR reading from socket");
+    // printf("Here is the message: %s\n", message);
+    strcpy(message, "");    
+
     int numbytes = 0;
     int five = 0;
     time(&rawtime);
     timeinfo = localtime(&rawtime);
-    printf("Progress: %d%%\t%d/%d/%d %d:%d:%d\n", (int)percent, timeinfo->tm_year+1900, timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+    printf("Progress: %d%%\t%d/%d/%d %02d:%02d:%02d\n", (int)percent, timeinfo->tm_year+1900, timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
     five += 5;
     while(!feof(fp)){
         numbytes = fread(buffer, sizeof(char), sizeof(buffer), fp);
@@ -81,14 +93,10 @@ void TCP_server(char ip[20], int portno, char path[100]){
             time ( &rawtime );
             timeinfo = localtime ( &rawtime );
             // printf ( "The current date/time is: %s", asctime (timeinfo) );
-            printf("Progress: %d%%\t%d/%d/%d %d:%d:%d\n", (int)percent, timeinfo->tm_year+1900, timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+            printf("Progress: %d%%\t%d/%d/%d %02d:%02d:%02d\n", (int)percent, timeinfo->tm_year+1900, timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
             five += 5;
         }
     }
-
-    // n = read(newsockfd,buffer,BUFFERSIZE-1);
-    // if (n < 0) error("ERROR reading from socket");
-    // printf("Here is the message: %s\n",buffer);
     
     fclose(fp);
     close(newsockfd);
@@ -128,6 +136,12 @@ void TCP_client(char ip[20], int portno, char path[100]){
     printf("%s\n", message);
     sscanf(message, "Sending file: %s", filename);
     // printf("%s\n", filename);
+    strcpy(message, "OK");
+
+    n = write(sockfd, message, sizeof(message));
+    if (n < 0) 
+         error("ERROR writing to socket");
+    strcpy(message, "");
 
     if((fp = fopen(filename, "wb")) == NULL){
         perror("connect");
@@ -136,16 +150,10 @@ void TCP_client(char ip[20], int portno, char path[100]){
     while(1){
         numbytes = read(sockfd, buffer, sizeof(buffer));
         //printf("read %d bytes, ", numbytes);
-		if(numbytes == 0){
-			break;
-		}
+		if(numbytes == 0)   break;
 		numbytes = fwrite(buffer, sizeof(char), numbytes, fp);
 		//printf("fwrite %d bytesn\n", numbytes);
     }
-
-    // n = write(sockfd,buffer,strlen(buffer));
-    // if (n < 0) 
-    //      error("ERROR writing to socket");
         
     fclose(fp);
     if (lstat(filename, &filestat) < 0){
@@ -154,6 +162,79 @@ void TCP_client(char ip[20], int portno, char path[100]){
 	printf("Received file size is %lu bytes\n", filestat.st_size);
     close(sockfd);
     return;
+}
+
+void UDP_server(char ip[20], int portno, char path[100]){
+    int sock;
+    if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
+        ERR_EXIT("socket error");
+
+    struct sockaddr_in servaddr;
+    memset(&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(5188);
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if (bind(sock, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
+        ERR_EXIT("bind error");
+
+    char recvbuf[1024] = {0};
+    struct sockaddr_in peeraddr;
+    socklen_t peerlen;
+    int n;
+
+    while (1)
+    {
+        peerlen = sizeof(peeraddr);
+        memset(recvbuf, 0, sizeof(recvbuf));
+        n = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&peeraddr, &peerlen);
+        if (n == -1)
+        {
+            if (errno == EINTR)
+                continue;
+
+            ERR_EXIT("recvfrom error");
+        }
+        else if(n > 0)
+        {
+            fputs(recvbuf, stdout);
+            sendto(sock, recvbuf, n, 0, (struct sockaddr *)&peeraddr, peerlen);
+        }
+    }
+    close(sock);
+}
+
+void UDP_client(char ip[20], int portno, char path[100]){
+    int sock;
+    if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
+        ERR_EXIT("socket");
+        struct sockaddr_in servaddr;
+    memset(&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(5188);
+    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    int ret;
+    char sendbuf[1024] = {0};
+    char recvbuf[1024] = {0};
+    while (fgets(sendbuf, sizeof(sendbuf), stdin) != NULL)
+    {
+        sendto(sock, sendbuf, strlen(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+
+        ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, NULL, NULL);
+        if (ret == -1)
+        {
+            if (errno == EINTR)
+                continue;
+            ERR_EXIT("recvfrom");
+        }
+
+        fputs(recvbuf, stdout);
+        memset(sendbuf, 0, sizeof(sendbuf));
+        memset(recvbuf, 0, sizeof(recvbuf));
+    }
+
+    close(sock);
 }
 
 int main(int argc, char *argv[])
@@ -178,6 +259,10 @@ int main(int argc, char *argv[])
         TCP_server(ip, portno, path);
     if(protocol == 0 && action == 1)
         TCP_client(ip, portno, path);
+    if(protocol == 1 && action == 0)
+        UDP_server(ip, portno, path);
+    if(protocol == 1 && action == 1)
+        UDP_client(ip, portno, path);
     
      return 0;
 }
