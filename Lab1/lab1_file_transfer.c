@@ -225,6 +225,7 @@ void UDP_server(char ip[20], int portno, char path[100]){
     int percent = 0, n, count = 0;
     time_t rawtime;
     struct tm * timeinfo;
+    struct timeval timeout = {3, 0};    
 
     /* create udp socket(ipv4, udp, protocol) */
     if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)    ERR_EXIT("socket error");
@@ -271,6 +272,9 @@ void UDP_server(char ip[20], int portno, char path[100]){
         printf("Cannot open this file.\n");
         return;
     }
+
+    /* set timeout if the client didn't send ACK back */
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(struct timeval));
     
     /* send file to client */
     while(!feof(fp)){
@@ -278,11 +282,13 @@ void UDP_server(char ip[20], int portno, char path[100]){
         if(numbytes == 0)   break;
 		numbytes = sendto(sock, buffer, numbytes, 0, (struct sockaddr *)&client_addr, peerlen);     // send data
         n = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&client_addr, &peerlen); // wait for ACK to continue
-        while(strcmp(recvbuf, "ACK")){
-
+        while(strcmp(recvbuf, "ACK") || n == -1){
+            printf("Resending...\n");
+            numbytes = sendto(sock, buffer, numbytes, 0, (struct sockaddr *)&client_addr, peerlen);     // send data
+            n = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&client_addr, &peerlen); // wait for ACK to continue
         }
 
-        /* calculate the progree */
+        /* calculate the progress */
         total += numbytes;
         percent =(int)((float)total / (float)filestat.st_size * 100);
         if(percent == count){
@@ -312,7 +318,7 @@ void UDP_server(char ip[20], int portno, char path[100]){
     /* send finish message to client */
     sprintf(sendbuf, "finish");
     sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&client_addr, peerlen);
-    printf("Send finish\n");
+    printf("Sending completed.\n");
     fclose(fp);
     close(sock);
 }
@@ -329,6 +335,7 @@ void UDP_client(char ip[20], int portno, char path[100]){
     char buffer[BUFFERSIZE];
     FILE *fp;
     struct stat filestat;
+    struct timeval timeout = {5, 0}; 
 
     /* create socket */
     if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
@@ -368,6 +375,8 @@ void UDP_client(char ip[20], int portno, char path[100]){
     memset(recvbuf, 0, sizeof(recvbuf));
     int count = 0;
 
+    /* set timeout if the packet is lost */
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(struct timeval));
     /* receive data and wite into file */
     while(1){
         numbytes = recvfrom(sock, buffer, sizeof(buffer), 0, (struct sockaddr *)&src, &len);
@@ -391,7 +400,7 @@ void UDP_client(char ip[20], int portno, char path[100]){
     if (lstat(filename, &filestat) < 0){
 		exit(1);
 	}
-	printf("Received file size is %lu bytes\n", filestat.st_size);
+	printf("Receiving completed.\nReceived file size is %lu bytes\n", filestat.st_size);
 
     close(sock);
 }
