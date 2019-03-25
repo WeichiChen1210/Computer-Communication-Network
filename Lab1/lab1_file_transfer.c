@@ -132,10 +132,10 @@ void TCP_server(char ip[20], int portno, char path[100]){
     }
     printf("Complete transfering.\n");
 
-    sprintf(message, "finish");
-    n = write(newsockfd, message, sizeof(message));
-    if (n < 0) error("ERROR writing to socket");
-    strcpy(message, "");
+    // sprintf(message, "finish");
+    // n = write(newsockfd, message, sizeof(message));
+    // if (n < 0) error("ERROR writing to socket");
+    // strcpy(message, "");
     
     /* close file and sockets */
     fclose(fp);
@@ -195,7 +195,7 @@ void TCP_client(char ip[20], int portno, char path[100]){
     /* start to receive packages and save them */
     while(1){
         numbytes = read(sockfd, buffer, sizeof(buffer));
-		if(numbytes == 0 || !strcmp(buffer, "finish"))   break; // if receive 0 byte or message "finish", break
+		if(numbytes == 0)   break; // if receive 0 byte or message "finish", break
 		numbytes = fwrite(buffer, sizeof(char), numbytes, fp);
     }
     printf("Complete transfering. ");
@@ -225,7 +225,7 @@ void UDP_server(char ip[20], int portno, char path[100]){
     int percent = 0, n, count = 0;
     time_t rawtime;
     struct tm * timeinfo;
-    struct timeval timeout = {3, 0};    
+    struct timeval timeout = {5, 0};    
 
     /* create udp socket(ipv4, udp, protocol) */
     if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)    ERR_EXIT("socket error");
@@ -276,23 +276,38 @@ void UDP_server(char ip[20], int portno, char path[100]){
     /* set timeout if the client didn't send ACK back */
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(struct timeval));
     
+    int seqnum = 0;
     /* send file to client */
     while(!feof(fp)){
-        numbytes = fread(buffer, sizeof(char), sizeof(buffer), fp);
+        numbytes = fread(buffer, sizeof(char), sizeof(buffer)-1, fp);
+        // printf("fread %ld bytes\n", numbytes);
+        
         if(numbytes == 0)   break;
-		numbytes = sendto(sock, buffer, numbytes, 0, (struct sockaddr *)&client_addr, peerlen);     // send data
+
+        /* add the sequential number as char at the end of the buffer */
+        buffer[numbytes] = seqnum + '0';
+        // printf("last %c\n", buffer[numbytes]);
+
+        /* increase seq number */
+        seqnum++;
+        if(seqnum > 9) seqnum = 0;
+        // printf("num %d\n", seqnum);
+		
+        numbytes = sendto(sock, buffer, numbytes+1, 0, (struct sockaddr *)&client_addr, peerlen);     // send data
+        // printf("send %ld\n", numbytes);
+        
         n = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&client_addr, &peerlen); // wait for ACK to continue
 
         /* if timeout or not ACK, resend */
         while(strcmp(recvbuf, "ACK") || n == -1){
             printf("Resending...\n");
-            numbytes = sendto(sock, buffer, numbytes, 0, (struct sockaddr *)&client_addr, peerlen);     // send data
+            n = sendto(sock, buffer, numbytes-1, 0, (struct sockaddr *)&client_addr, peerlen);     // send data
             n = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&client_addr, &peerlen); // wait for ACK to continue
         }
 
         /* calculate the progress */
-        total += numbytes;
-        percent =(int)((float)total / (float)filestat.st_size * 100);
+        total += numbytes-1;
+        percent =(int)(100 * (float)total / (float)filestat.st_size);
         if(percent == count){
             count += 5;
             time(&rawtime);
@@ -337,7 +352,6 @@ void UDP_client(char ip[20], int portno, char path[100]){
     char buffer[BUFFERSIZE];
     FILE *fp;
     struct stat filestat;
-    struct timeval timeout = {5, 0}; 
 
     /* create socket */
     if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
@@ -364,7 +378,6 @@ void UDP_client(char ip[20], int portno, char path[100]){
     else if(ret > 0){
         sscanf(recvbuf, "OK %s", filename);     // get file name
         printf("Received: %s\nStart receiving file...\n", recvbuf);
-        //printf("%s\n", filename);
     }
 
     // prepare file to write
@@ -375,24 +388,39 @@ void UDP_client(char ip[20], int portno, char path[100]){
     
     memset(sendbuf, 0, sizeof(sendbuf));
     memset(recvbuf, 0, sizeof(recvbuf));
-    int count = 0;
+    int count = 0, seqnum = 0;
 
     /* receive data and wite into file */
     while(1){
         numbytes = recvfrom(sock, buffer, sizeof(buffer), 0, (struct sockaddr *)&src, &len);
-        if(!strcmp(buffer, "finish"))   break;  // if finish, break
+        if(!strncmp(buffer, "finish", numbytes-1))   break;  // if finish, break
+
+        count = buffer[numbytes-1] - '0';   // get the sequential number form server
+        // printf("count %d seq %d\n", count, seqnum);
+        
         if(numbytes == 0){  // receive 0 byte, send ACK to break
             sprintf(sendbuf, "ACK");
             sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
             // printf("Send ACK\n");
             break;
         }
-		numbytes = fwrite(buffer, sizeof(char), numbytes, fp);  // write file
 
-        /* send ACK to confirm receive */
-        sprintf(sendbuf, "ACK");
-        sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
-        count++;
+        /* if the seq number from server is equal to the one of client, receive the packet and return ACK */
+        else if(count == seqnum){
+		    numbytes = fwrite(buffer, sizeof(char), numbytes-1, fp);  // write file
+            /* increase the seq number */
+            seqnum++;
+            if(seqnum > 9) seqnum = 0;
+            /* send ACK to confirm receive */
+            sprintf(sendbuf, "ACK");
+            sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+        }
+
+        /* if the server's num is < the client's, it means te server is sending the ole packets, return ACK to pass */
+        else if(count < seqnum){
+            sprintf(sendbuf, "ACK");
+            sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+        }
     }
 
     /* get file info to confirm */    

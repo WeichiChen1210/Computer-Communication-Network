@@ -135,3 +135,422 @@ Hi
         //printf("%s\n", filename);
     }
 
+        buffer[BUFFERSIZE-1] = seqnum + '0';
+        printf("last %c\n", buffer[BUFFERSIZE-1]);
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+
+        buffer[BUFFERSIZE-1] = seqnum + '0';
+        printf("last %c\n", buffer[BUFFERSIZE-1]);
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+
+        buffer[BUFFERSIZE-1] = seqnum + '0';
+        printf("last %c\n", buffer[BUFFERSIZE-1]);
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+Hi
+ long int ret;
+    char sendbuf[BUFFERSIZE] = {0};
+    char recvbuf[BUFFERSIZE] = {0};
+    sprintf(sendbuf, "Request");
+    printf("Send: %s\n", sendbuf);
+    sendto(sock, sendbuf, sizeof(sendbuf), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    ret = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&src, &len);
+    if (ret == -1){
+        if (errno == EINTR);
+        ERR_EXIT("recvfrom");
+    }
+    else if(ret > 0){
+        sscanf(recvbuf, "OK %s", filename);
+        printf("Received: %s\nStart receiving file...\n", recvbuf);
+        //printf("%s\n", filename);
+    }
+
+        buffer[BUFFERSIZE-1] = seqnum + '0';
+        printf("last %c\n", buffer[BUFFERSIZE-1]);
