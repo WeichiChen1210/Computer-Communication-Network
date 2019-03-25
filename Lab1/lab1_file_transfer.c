@@ -282,6 +282,8 @@ void UDP_server(char ip[20], int portno, char path[100]){
         if(numbytes == 0)   break;
 		numbytes = sendto(sock, buffer, numbytes, 0, (struct sockaddr *)&client_addr, peerlen);     // send data
         n = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, (struct sockaddr *)&client_addr, &peerlen); // wait for ACK to continue
+
+        /* if timeout or not ACK, resend */
         while(strcmp(recvbuf, "ACK") || n == -1){
             printf("Resending...\n");
             numbytes = sendto(sock, buffer, numbytes, 0, (struct sockaddr *)&client_addr, peerlen);     // send data
@@ -375,8 +377,6 @@ void UDP_client(char ip[20], int portno, char path[100]){
     memset(recvbuf, 0, sizeof(recvbuf));
     int count = 0;
 
-    /* set timeout if the packet is lost */
-    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(struct timeval));
     /* receive data and wite into file */
     while(1){
         numbytes = recvfrom(sock, buffer, sizeof(buffer), 0, (struct sockaddr *)&src, &len);
