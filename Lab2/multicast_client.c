@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
+#define BUFSIZE 256
 
 struct sockaddr_in localSock;
 struct ip_mreq group;
@@ -16,11 +17,12 @@ char group_ip[20] = "226.1.1.1";
 char local_ip[20] = "192.168.1.100";
 int group_port = 4321;
 int datalen;
-char databuf[1024];
+char databuf[BUFSIZE];
 struct stat filestat;
-char filename[20] = "output.bin";
-char filebuf[1024];
+char filename[20] = "output.jpg";
+char filebuf[BUFSIZE];
 int numbytes;
+int seqnum = 0;
  
 int main(int argc, char *argv[])
 {
@@ -82,6 +84,7 @@ int main(int argc, char *argv[])
 
 	printf("Reading datagram message...OK.\n");
 	int count = 0;
+	seqnum = 0;
 	/* Read from the socket. */
 	datalen = sizeof(databuf);
 	while(1){

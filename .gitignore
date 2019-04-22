@@ -1,2 +1,9 @@
 #vscode
 .vscode/
+*.pptx
+*.docx
+*.mp4
+*.jpg
+*.bin
+Lab2/client
+:ab2/server

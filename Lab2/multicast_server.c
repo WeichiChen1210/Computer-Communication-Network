@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
+#define BUFSIZE 256
 
 struct in_addr localInterface;
 struct sockaddr_in groupSock;
@@ -15,12 +16,13 @@ int sd;
 char group_ip[20] = "226.1.1.1";
 char local_ip[20] = "192.168.1.100";
 int group_port = 4321;
-char databuf[1024] = "Multicast test message.";
+char databuf[BUFSIZE] = "Multicast test message.";
 int datalen = sizeof(databuf);
 struct stat filestat;
-char filename[20] = "1GB.bin";
-char filebuf[1024];
+char filename[20] = "picture.jpg";
+char filebuf[BUFSIZE];
 int numbytes;
+int seqnum = 0;
 
 int main (int argc, char *argv[ ])
 {
@@ -77,15 +79,20 @@ int main (int argc, char *argv[ ])
         exit(1);
     }
 	int count = 0;
+	seqnum = 0;
 	while(!feof(fp)){
 		numbytes = fread(filebuf, sizeof(char), sizeof(filebuf), fp);
 		if(numbytes == 0)	break;
+		// printf("num read %d seqnum %d\n", numbytes, seqnum);
+		// filebuf[numbytes] = seqnum + '0';
+		// printf("buf last %d\n", filebuf[numbytes]);
 		numbytes = sendto(sd, filebuf, numbytes, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
 		count++;
 		if(numbytes < 0)
 		{
 			perror("Sending datagram message error");
 		}
+		// seqnum++;
 	}
 	printf("Send %d times.\n", count);
 	/* Send a message to the multicast group specified by the*/
