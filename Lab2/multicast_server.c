@@ -8,13 +8,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
-#define BUFSIZE 256
+#define BUFSIZE 128
 
 struct in_addr localInterface;
 struct sockaddr_in groupSock;
 int sd;
 char group_ip[20] = "226.1.1.1";
-char local_ip[20] = "192.168.1.100";
+char local_ip[20] = "192.168.207.46";
 int group_port = 4321;
 char databuf[BUFSIZE] = "Multicast test message.";
 int datalen = sizeof(databuf);
@@ -81,20 +81,22 @@ int main (int argc, char *argv[ ])
 	int count = 0;
 	seqnum = 0;
 	while(!feof(fp)){
-		numbytes = fread(filebuf, sizeof(char), sizeof(filebuf), fp);
+		numbytes = fread(filebuf, sizeof(char), sizeof(filebuf)-1, fp);
 		if(numbytes == 0)	break;
 		// printf("num read %d seqnum %d\n", numbytes, seqnum);
-		// filebuf[numbytes] = seqnum + '0';
+		filebuf[numbytes] = seqnum + '0';
 		// printf("buf last %d\n", filebuf[numbytes]);
-		numbytes = sendto(sd, filebuf, numbytes, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
+		numbytes = sendto(sd, filebuf, numbytes+1, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
+		// printf("send %d\n", numbytes);
 		count++;
 		if(numbytes < 0)
 		{
 			perror("Sending datagram message error");
 		}
-		// seqnum++;
+		if(++seqnum > 9) seqnum = 0;
+		// printf("count %d\n", count);
 	}
-	printf("Send %d times.\n", count);
+	printf("Send %d pakcets.\n", count);
 	/* Send a message to the multicast group specified by the*/
 	/* groupSock sockaddr structure. */
 	/*int datalen = 1024;*/
@@ -118,6 +120,6 @@ int main (int argc, char *argv[ ])
 	// 	printf("The message is: %s\n", databuf);
 	// }
 	fclose(fp);
-	printf("File size: %ld bytes\n", filestat.st_size);
+	printf("The file size is %ld bytes\n", filestat.st_size);
 	return 0;
 }

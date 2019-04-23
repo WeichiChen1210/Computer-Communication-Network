@@ -8,13 +8,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
-#define BUFSIZE 256
+#define BUFSIZE 128
 
 struct sockaddr_in localSock;
 struct ip_mreq group;
 int sd;
 char group_ip[20] = "226.1.1.1";
-char local_ip[20] = "192.168.1.100";
+char local_ip[20] = "192.168.207.46";
 int group_port = 4321;
 int datalen;
 char databuf[BUFSIZE];
@@ -23,6 +23,7 @@ char filename[20] = "output.jpg";
 char filebuf[BUFSIZE];
 int numbytes;
 int seqnum = 0;
+int arr[10];
  
 int main(int argc, char *argv[])
 {
@@ -82,7 +83,11 @@ int main(int argc, char *argv[])
         exit(1);
 	}
 
-	printf("Reading datagram message...OK.\n");
+	// printf("Reading datagram message...OK.\n");
+	int i = 0, j = 0;
+	for(i = 0; i < 10; i++)
+			arr[i] = 0;
+
 	int count = 0;
 	seqnum = 0;
 	/* Read from the socket. */
@@ -90,16 +95,23 @@ int main(int argc, char *argv[])
 	while(1){
 		numbytes = read(sd, databuf, datalen);
         if(!strncmp(databuf, "finish", numbytes) || numbytes == 0)   break;  // if finish, break
+		seqnum = databuf[numbytes-1] - '0';
+		// printf("recv seqnum %d\n", seqnum);
 		if(numbytes > 0) {
-			numbytes = fwrite(databuf, sizeof(char), numbytes, fp);
+			numbytes = fwrite(databuf, sizeof(char), numbytes-1, fp);
+			arr[seqnum]++;
 			count++;
+			// printf("count %d\n", count);
 		}
 	}
-	printf("Receive %d times.\n", count);
+	printf("Last seqnum %d\nSeq array:\n", seqnum);
+	for(i = 0; i < 10; i++)
+		printf("%d ", arr[i]);
+	printf("\nReceived %d packets.\n", count);
 	fclose(fp);
 	if (lstat(filename, &filestat) < 0){
 		exit(1);
 	}
-	printf("file size %ld bytes\n", filestat.st_size);
+	printf("The file size is %ld bytes\n", filestat.st_size);
 	return 0;
 }

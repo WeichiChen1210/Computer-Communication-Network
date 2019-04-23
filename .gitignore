@@ -6,4 +6,5 @@
 *.jpg
 *.bin
 Lab2/client
-:ab2/server
+Lab2/server
+Lab2/liquid-dsp
