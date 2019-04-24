@@ -8,13 +8,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <liquid/liquid.h>
 #define BUFSIZE 128
 
 struct sockaddr_in localSock;
 struct ip_mreq group;
 int sd;
 char group_ip[20] = "226.1.1.1";
-char local_ip[20] = "192.168.207.46";
+char local_ip[20] = "192.168.1.100";
 int group_port = 4321;
 int datalen;
 char databuf[BUFSIZE];
