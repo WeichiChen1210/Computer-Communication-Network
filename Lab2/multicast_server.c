@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <liquid/liquid.h>
 #define BUFSIZE 128
 
 struct in_addr localInterface;
@@ -26,6 +27,26 @@ int seqnum = 0;
 
 int main (int argc, char *argv[ ])
 {
+	/////////////// fec setup ///////////////
+	// simulation parameters
+    unsigned int n = 8;                     // original data length (bytes)
+    fec_scheme fs = LIQUID_FEC_HAMMING74;   // error-correcting scheme
+
+    // compute size of encoded message
+    unsigned int k = fec_get_enc_msg_length(fs,n);
+
+    // create arrays
+    unsigned char msg_org[n];   // original data message
+    unsigned char msg_enc[k];   // encoded/received data message
+    unsigned char msg_dec[n];   // decoded data message
+
+    // CREATE the fec object
+    fec q = fec_create(fs,NULL);
+    fec_print(q);
+
+    unsigned int i;
+
+	/////////////// socket ///////////////
 	/* Create a datagram socket on which to send. */
 	sd = socket(AF_INET, SOCK_DGRAM, 0);
 	if(sd < 0)
@@ -68,6 +89,7 @@ int main (int argc, char *argv[ ])
 	}
 	else	printf("Setting the local interface...OK\n");
 
+	/////////////// file operation ///////////////
 	if (lstat(filename, &filestat) < 0){
 		printf("Cannot open this file.\n");
 		exit(1);
@@ -78,25 +100,36 @@ int main (int argc, char *argv[ ])
         printf("Cannot open this file.\n");
         exit(1);
     }
+
+	/////////////// file transfering ///////////////
 	int count = 0;
 	seqnum = 0;
 	while(!feof(fp)){
-		numbytes = fread(filebuf, sizeof(char), sizeof(filebuf)-1, fp);
+		// numbytes = fread(filebuf, sizeof(char), sizeof(filebuf)-1, fp);
+		numbytes = fread(msg_org, sizeof(char), sizeof(msg_org), fp);
+
 		if(numbytes == 0)	break;
 		// printf("num read %d seqnum %d\n", numbytes, seqnum);
-		filebuf[numbytes] = seqnum + '0';
+		// filebuf[numbytes] = seqnum + '0';
 		// printf("buf last %d\n", filebuf[numbytes]);
-		numbytes = sendto(sd, filebuf, numbytes+1, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
+
+		// fec coding
+		fec_encode(q, n, msg_org, msg_enc);
+		// numbytes = sendto(sd, filebuf, numbytes+1, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
+		numbytes = sendto(sd, msg_enc, numbytes, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
+
 		// printf("send %d\n", numbytes);
 		count++;
 		if(numbytes < 0)
 		{
 			perror("Sending datagram message error");
 		}
-		if(++seqnum > 9) seqnum = 0;
+		// if(++seqnum > 9) seqnum = 0;
 		// printf("count %d\n", count);
 	}
 	printf("Send %d pakcets.\n", count);
+
+
 	/* Send a message to the multicast group specified by the*/
 	/* groupSock sockaddr structure. */
 	/*int datalen = 1024;*/
