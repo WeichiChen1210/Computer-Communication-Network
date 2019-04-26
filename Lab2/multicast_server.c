@@ -104,20 +104,19 @@ int main (int argc, char *argv[ ])
 	/////////////// file transfering ///////////////
 	int count = 0;
 	seqnum = 0;
+	datalen = sizeof(msg_enc);
 	while(!feof(fp)){
-		// numbytes = fread(filebuf, sizeof(char), sizeof(filebuf)-1, fp);
-		numbytes = fread(msg_org, sizeof(char), sizeof(msg_org), fp);
-
-		if(numbytes == 0)	break;
+		// numbytes = fread(filebuf, sizeof(char), sizeof(filebuf), fp);
+		numbytes = fread(msg_org, sizeof(unsigned char), sizeof(msg_org), fp);
+		
 		// printf("num read %d seqnum %d\n", numbytes, seqnum);
 		// filebuf[numbytes] = seqnum + '0';
 		// printf("buf last %d\n", filebuf[numbytes]);
 
 		// fec coding
 		fec_encode(q, n, msg_org, msg_enc);
-		// numbytes = sendto(sd, filebuf, numbytes+1, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
-		numbytes = sendto(sd, msg_enc, numbytes, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
-
+		numbytes = sendto(sd, filebuf, numbytes, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
+		// numbytes = sendto(sd, msg_enc, numbytes, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
 		// printf("send %d\n", numbytes);
 		count++;
 		if(numbytes < 0)
@@ -133,13 +132,13 @@ int main (int argc, char *argv[ ])
 	/* Send a message to the multicast group specified by the*/
 	/* groupSock sockaddr structure. */
 	/*int datalen = 1024;*/
-	sprintf(databuf, "finish");
-	if(sendto(sd, databuf, datalen, 0, (struct sockaddr*)&groupSock, sizeof(groupSock)) < 0)
-	{
-		perror("Sending datagram message error");
-	}
+	sprintf(msg_org, "finish");
+	fec_encode(q, n, msg_org, msg_enc);
+	datalen = sizeof(msg_enc);
+	numbytes = sendto(sd, msg_enc, datalen, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
+	if(numbytes < 0)	perror("Sending datagram message error");
 	else	printf("Sending finish message...OK\n");
-	
+	printf("finish is %d\n", numbytes);
 	// Try the re-read from the socket if the loopback is not disable
 	// if(read(sd, databuf, datalen) < 0)
 	// {

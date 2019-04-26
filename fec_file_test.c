@@ -56,7 +56,7 @@ int main() {
     // CREATE the fec object
     fec q = fec_create(fs,NULL);
     fec_print(q);
-
+// sprintf(msg_org, "finish");
     unsigned int i;
     while(!feof(fp)){
         numbytes = fread(msg_org, sizeof(char), sizeof(msg_org), fp);
@@ -86,12 +86,12 @@ int main() {
     for (i=0; i<n; i++)
         printf(" %.2X", msg_org[i]);
     printf("\n");
-
+        printf("%s\n", msg_org);
     printf("decoded message:   [%3u] ",n);
     for (i=0; i<n; i++)
         printf(" %.2X", msg_dec[i]);
     printf("\n");
-
+        printf("%s\n", msg_dec);
     // count bit errors
     unsigned int num_bit_errors = count_bit_errors_array(msg_org, msg_dec, n);
     printf("number of bit errors received:    %3u / %3u\n", num_bit_errors, n*8);

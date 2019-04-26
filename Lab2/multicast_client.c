@@ -28,7 +28,27 @@ int arr[10];
  
 int main(int argc, char *argv[])
 {
-/* Create a datagram socket on which to receive. */
+	/////////////// fec setup ///////////////
+	// simulation parameters
+    unsigned int n = 8;                     // original data length (bytes)
+    fec_scheme fs = LIQUID_FEC_HAMMING74;   // error-correcting scheme
+
+    // compute size of encoded message
+    unsigned int k = fec_get_enc_msg_length(fs,n);
+
+    // create arrays
+    unsigned char msg_org[n];   // original data message
+    unsigned char msg_enc[k];   // encoded/received data message
+    unsigned char msg_dec[n];   // decoded data message
+
+    // CREATE the fec object
+    fec q = fec_create(fs,NULL);
+    fec_print(q);
+
+    unsigned int i;
+
+	/////////////// socket setup ///////////////
+	/* Create a datagram socket on which to receive. */
 	sd = socket(AF_INET, SOCK_DGRAM, 0);
 	if(sd < 0)
 	{
@@ -78,6 +98,7 @@ int main(int argc, char *argv[])
 	}
 	else	printf("Adding multicast group...OK.\n");
 	
+	/////////////// file operation ///////////////
 	FILE *fp;
 	if((fp = fopen(filename, "wb")) == NULL){
 		printf("Cannot write this file.\n");
@@ -85,29 +106,36 @@ int main(int argc, char *argv[])
 	}
 
 	// printf("Reading datagram message...OK.\n");
-	int i = 0, j = 0;
-	for(i = 0; i < 10; i++)
-			arr[i] = 0;
+	// int i = 0, j = 0;
+	// for(i = 0; i < 10; i++)
+	// 		arr[i] = 0;
 
 	int count = 0;
 	seqnum = 0;
 	/* Read from the socket. */
-	datalen = sizeof(databuf);
-	while(1){
-		numbytes = read(sd, databuf, datalen);
-        if(!strncmp(databuf, "finish", numbytes) || numbytes == 0)   break;  // if finish, break
-		seqnum = databuf[numbytes-1] - '0';
+	// datalen = sizeof(databuf);
+	datalen = sizeof(msg_enc);
+	while((numbytes = read(sd, msg_enc, datalen)) > 0){
+		// numbytes = read(sd, msg_enc, datalen);
+		fec_decode(q, n, msg_enc, msg_dec);
+		
+        if(!strncmp(msg_dec, "finish", numbytes))   {
+			printf("num %d break", numbytes);
+			break;  // if finish, break
+		}
+		// seqnum = databuf[numbytes-1] - '0';
 		// printf("recv seqnum %d\n", seqnum);
 		if(numbytes > 0) {
-			numbytes = fwrite(databuf, sizeof(char), numbytes-1, fp);
-			arr[seqnum]++;
+			numbytes = fwrite(msg_dec, sizeof(unsigned char), numbytes, fp);
+			// numbytes = fwrite(databuf, sizeof(char), numbytes, fp);
+			// arr[seqnum]++;
 			count++;
 			// printf("count %d\n", count);
 		}
 	}
-	printf("Last seqnum %d\nSeq array:\n", seqnum);
-	for(i = 0; i < 10; i++)
-		printf("%d ", arr[i]);
+	// printf("Last seqnum %d\nSeq array:\n", seqnum);
+	// for(i = 0; i < 10; i++)
+	// 	printf("%d ", arr[i]);
 	printf("\nReceived %d packets.\n", count);
 	fclose(fp);
 	if (lstat(filename, &filestat) < 0){
