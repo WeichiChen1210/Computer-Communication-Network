@@ -21,32 +21,13 @@ int group_port = 4321;
 int datalen;
 struct stat filestat;
 char filename[200] = "4K.mp4";
-// char filebuf[BUFSIZE];
+unsigned char filebuf[BUFSIZE];
 int numbytes;
 int seqnum = 0;
 
-int main (int argc, char *argv[])
+int main (int argc, char *argv[ ])
 {
 	if(argc > 1)	strcpy(filename, argv[1]);
-	/////////////// fec setup ///////////////
-	// simulation parameters
-    unsigned int n = BUFSIZE;                     // original data length (bytes)
-    fec_scheme fs = LIQUID_FEC_HAMMING74;   // error-correcting scheme
-
-    // compute size of encoded message
-    unsigned int k = fec_get_enc_msg_length(fs,n);
-
-    // create arrays
-    unsigned char msg_org[n];   // original data message
-    unsigned char msg_enc[k];   // encoded/received data message
-    // unsigned char msg_dec[n];   // decoded data message
-
-    // CREATE the fec object
-    fec q = fec_create(fs,NULL);
-    fec_print(q);
-
-    unsigned int i;
-
 	/////////////// socket ///////////////
 	/* Create a datagram socket on which to send. */
 	sd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -95,26 +76,23 @@ int main (int argc, char *argv[])
 
 	/////////////// file transfering ///////////////
 	int count = 0;
+	int lastbyte = 0;
 	seqnum = 0;
 	while(!feof(fp)){
-		numbytes = fread(msg_org, sizeof(unsigned char), sizeof(msg_org), fp);
-
-		//fec coding
-		fec_encode(q, n, msg_org, msg_enc);
-		
-		numbytes = sendto(sd, msg_enc, sizeof(msg_enc), 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
+		numbytes = fread(filebuf, sizeof(unsigned char), sizeof(filebuf)-1, fp);
+		// filebuf[numbytes] = seqnum + '0';
+		numbytes = sendto(sd, filebuf, numbytes+1, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
 		
 		count++;
+		// seqnum++;
+		// if(seqnum > 200) seqnum = 0;
 		if(numbytes < 0)	perror("Sending datagram message error");
 	}
 	fclose(fp);
+	sprintf(filebuf, "finish");
+	sendto(sd, filebuf, numbytes, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
 
-	/////////////// send "finish" message ///////////////
-	sprintf(msg_org, "finish");
-	fec_encode(q, n, msg_org, msg_enc);
-	numbytes = sendto(sd, msg_enc, sizeof(msg_enc), 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
-
-	printf("OK\nSend %d pakcets.\n", count);
+	printf("OK.\nSend %d packets.\n", count);
 
 	return 0;
 }

@@ -18,36 +18,15 @@ char group_ip[20] = "226.1.1.1";
 char local_ip[20] = "192.168.1.100";
 int group_port = 4321;
 int datalen;
-char databuf[BUFSIZE];
+unsigned char databuf[BUFSIZE];
 struct stat filestat;
-char filename[200] = "output.mp4";
-char org_filename[20] = "4K.mp4";
+char filename[200] = "output.jpg";
+char org_filename[20] = "picture.jpg";
 int numbytes;
-int seqnum = 0;
-int arr[10];
  
 int main(int argc, char *argv[])
 {
 	if(argc > 1) strcpy(filename, argv[1]);
-	/////////////// fec setup ///////////////
-	// simulation parameters
-    unsigned int n = BUFSIZE;                     // original data length (bytes)
-    fec_scheme fs = LIQUID_FEC_HAMMING74;   // error-correcting scheme
-
-    // compute size of encoded message
-    unsigned int k = fec_get_enc_msg_length(fs,n);
-
-    // create arrays
-    // unsigned char msg_org[n];   // original data message
-    unsigned char msg_enc[k];   // encoded/received data message
-    unsigned char msg_dec[5][n];   // decoded data message
-
-    // CREATE the fec object
-    fec q = fec_create(fs,NULL);
-    fec_print(q);
-
-    unsigned int i;
-
 	/////////////// socket setup ///////////////
 	/* Create a datagram socket on which to receive. */
 	sd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -105,58 +84,53 @@ int main(int argc, char *argv[])
 		printf("Cannot write this file.\n");
         exit(1);
 	}
-
-	printf("Reading datagram message...");
-	int count = 0;
-	seqnum = 0;
-	/* Read from the socket. */
-	while((numbytes = read(sd, msg_enc, sizeof(msg_enc))) > 0){
-		count++;
-
-		fec_decode(q, n, msg_enc, msg_dec[1]);
-
-		numbytes = sizeof(msg_dec[1]);
-        if(!strncmp(msg_dec[1], "finish", numbytes)){
-			count--;
-			fclose(fp);
-			break;  // if finish, break
-		}
-		if(numbytes > 0) {
-			numbytes = fwrite(msg_dec[1], sizeof(unsigned char), sizeof(msg_dec[1]), fp);
-		}
-	}
-	
-	printf("OK.\nReceived %d packets.\n", count);
-
-	if (lstat(filename, &filestat) < 0){
-		exit(1);
-	}
-	printf("The file size is %ld bytes\n", filestat.st_size);
-
-	/////////////// file error check ///////////////
-	// FILE *fp1, *fp2;
+	// FILE *fp1;
 	// if((fp1 = fopen(org_filename, "rb")) == NULL){
 	// 	printf("Cannot write this file.\n");
     //     exit(1);
 	// }
-	// if((fp2 = fopen(filename, "rb")) == NULL){
-	// 	printf("Cannot write this file.\n");
-    //     exit(1);
-	// }
+	// unsigned char file1[BUFSIZE];
+
+	printf("Reading datagram file...");
+
+	int count = 0, recvcount = 0, seqnum = 0, lost = 0;
+	// long int error_count = 0;
+	/* Read from the socket. */
+	while((numbytes = read(sd, databuf, sizeof(databuf))) > 0){
+		if(!strncmp(databuf, "finish", numbytes)){
+			fclose(fp);
+			break;  // if finish, break
+		}
+		// fread(file1, sizeof(unsigned char), sizeof(file1), fp1);
+
+		// seqnum = databuf[numbytes-1] - '0';
+		// printf("count %d seqnum %d\n", count, seqnum);
+		// if(count != seqnum) {
+		// 	lost += abs(seqnum-count)-1;
+		// 	printf("count %d seqnum %d\n", count, seqnum);
+		// }
+		// count = seqnum;
+
+		if(numbytes > 0) {
+			numbytes = fwrite(databuf, sizeof(unsigned char), numbytes-1, fp);
+			// unsigned int num_bit_errors = count_bit_errors_array(databuf, file1, BUFSIZE);
+    		// if(num_bit_errors != 0) error_count++;
+		}
+		recvcount++;
+		// count++;
+		// if(count > 200) count = 0;
+	}
 	
-	// unsigned char file1[n];
-	// unsigned char file2[n];
-	// int error_count = 0;
-	// while(!feof(fp1) && !feof(fp2)){
-	// 	fread(file1, sizeof(unsigned char), sizeof(file1), fp1);
-	// 	fread(file2, sizeof(unsigned char), sizeof(file2), fp2);
-	// 	unsigned int num_bit_errors = count_bit_errors_array(file1, file2, n);
-    // 	if(num_bit_errors != 0) error_count++;
-	// }
+	printf("OK.\nReceived %d packets.\n", recvcount);
+
+	if (lstat(filename, &filestat) < 0){
+		exit(1);
+	}
+	printf("Received file size is %ld bytes\n", filestat.st_size);
+
+	/////////////// file error check ///////////////
 	// fclose(fp1);
-	// fclose(fp2);
-	// printf("errors: %d\n", error_count);
 
-
+	// printf("errors: %ld\n", error_count);
 	return 0;
 }

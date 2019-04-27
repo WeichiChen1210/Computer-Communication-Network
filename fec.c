@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <liquid/liquid.h>
 
 int main() {
@@ -22,7 +23,7 @@ int main() {
     // generate message
     for (i=0; i<n; i++)
         msg_org[i] = i & 0xff;
-
+        
     // encode message
     fec_encode(q, n, msg_org, msg_enc);
 
