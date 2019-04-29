@@ -7,15 +7,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <liquid/liquid.h>
 #define BUFSIZE 256
 
+int mode;	//0 uni 1 multi
 struct in_addr localInterface;
 struct sockaddr_in groupSock;
 int sd;
 char group_ip[20] = "226.1.1.1";
-char local_ip[20] = "192.168.208.193";
-int group_port = 4321;
+char local_ip[20] = "192.168.1.100";
+int group_port = 5000;
 struct stat filestat;
 char filename[200] = "picture.jpg";
 unsigned char filebuf[BUFSIZE];
@@ -24,7 +24,17 @@ int seqnum = 0, count = 0;
 
 int main (int argc, char *argv[ ])
 {
-	if(argc > 1)	strcpy(filename, argv[1]);
+	if(argc == 4){
+		strcpy(local_ip, argv[1]);
+		sscanf(argv[2], "%d", &group_port);
+		strcpy(filename, argv[3]);
+	}
+	else{
+		printf("wrong arguments\n");
+		exit(1);
+	}
+	
+	printf("[Multicast server without FEC: Prepare to send file %s]\n", filename);
 	/////////////// socket ///////////////
 	/* Create a datagram socket on which to send.
 	 *			IPV4,    UDP
@@ -35,7 +45,7 @@ int main (int argc, char *argv[ ])
 		perror("Opening datagram socket error");
 		exit(1);
 	}
-	else	printf("Opening the datagram socket...OK.\n");
+	// else	printf("Opening the datagram socket...OK.\n");
 	
 	/* Initialize the group sockaddr structure with a */
 	/* group address of 226.1.1.1 and port 4321. */
@@ -59,7 +69,7 @@ int main (int argc, char *argv[ ])
 		perror("Setting local interface error");
 		exit(1);
 	}
-	else	printf("Setting the local interface...OK\n");
+	// else	printf("Setting the local interface...OK\n");
 
 	/////////////// file operation ///////////////
 	/* get file size */
@@ -80,7 +90,9 @@ int main (int argc, char *argv[ ])
 	/////////////// file transfering ///////////////
 	count = seqnum = 0;
 	while(!feof(fp)){
-		/* set sequence number to the first 4 bytes in buffer */
+		/* set sequence number to the first 4 bytes in buffer 
+		 * each has 1 byte of seqnum, 8 bits
+		*/
 		filebuf[0] = seqnum >> 24;
 		filebuf[1] = seqnum >> 16;
 		filebuf[2] = seqnum >> 8;
@@ -103,6 +115,6 @@ int main (int argc, char *argv[ ])
 	sendto(sd, filebuf, numbytes, 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
 
 	printf("OK.\nSend %d packets.\n", count);
-
+	close(sd);
 	return 0;
 }

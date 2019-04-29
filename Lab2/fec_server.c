@@ -14,7 +14,7 @@ struct in_addr localInterface;
 struct sockaddr_in groupSock;
 int sd;
 char group_ip[20] = "226.1.1.1";
-char local_ip[20] = "192.168.208.193";
+char local_ip[20] = "192.168.1.100";
 int group_port = 4321;
 struct stat filestat;
 char filename[200] = "picture.jpg";
@@ -23,7 +23,18 @@ int seqnum = 0, count = 0;
 
 int main (int argc, char *argv[])
 {
-	if(argc > 1)	strcpy(filename, argv[1]);
+	if(argc == 4){
+		strcpy(local_ip, argv[1]);
+		sscanf(argv[2], "%d", &group_port);
+		strcpy(filename, argv[3]);
+	}
+	else{
+		printf("wrong arguments\n");
+		exit(1);
+	}
+	// printf("%s %d %s\n", local_ip, group_port, filename);
+
+	printf("[Multicast server with FEC: Prepare to send file %s]\n", filename);
 	/////////////// fec setup ///////////////
 	// simulation parameters
     unsigned int n = BUFSIZE;               // original data length (bytes)
@@ -38,7 +49,7 @@ int main (int argc, char *argv[])
 
     // CREATE the fec object
     fec q = fec_create(fs,NULL);
-    fec_print(q);
+    // fec_print(q);
 
     unsigned int i;
 
@@ -50,7 +61,7 @@ int main (int argc, char *argv[])
 		perror("Opening datagram socket error");
 		exit(1);
 	}
-	else	printf("Opening the datagram socket...OK.\n");
+	// else	printf("Opening the datagram socket...OK.\n");
 	
 	/* setting group
 	 * Initialize the group sockaddr structure with a
@@ -76,7 +87,7 @@ int main (int argc, char *argv[])
 		perror("Setting local interface error");
 		exit(1);
 	}
-	else	printf("Setting the local interface...OK\n");
+	// else	printf("Setting the local interface...OK\n");
 
 	/////////////// file operation ///////////////
 	/* get file information(size) */
@@ -97,14 +108,16 @@ int main (int argc, char *argv[])
 	/////////////// file transfering ///////////////
 	seqnum = 0;
 	while(!feof(fp)){
-		/* set sequence number to the first 4 bytes */
+		/* set sequence number to the first 4 bytes in buffer 
+		 * each has 1 byte of seqnum, 8 bits
+		 */
 		msg_org[0] = seqnum >> 24;
 		msg_org[1] = seqnum >> 16;
 		msg_org[2] = seqnum >> 8;
 		msg_org[3] = seqnum;
 		/* read the file and store in the buffer from the 5th byte and for size-4 */
-		numbytes = fread(msg_org+4, sizeof(unsigned char), sizeof(msg_org)-4, fp);
-
+		numbytes = fread(msg_org+5, sizeof(unsigned char), sizeof(msg_org)-5, fp);
+		msg_org[4] = numbytes;
 		/* fec encoding, get encoded buffer msg_enc */
 		fec_encode(q, n, msg_org, msg_enc);
 		

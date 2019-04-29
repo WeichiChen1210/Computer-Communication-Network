@@ -7,23 +7,34 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <liquid/liquid.h>
 #define BUFSIZE 256
 
+int mode;	// 0 uni 1 multi
 struct sockaddr_in localSock;
 struct ip_mreq group;
 int sd;
 char group_ip[20] = "226.1.1.1";
-char local_ip[20] = "192.168.208.193";
-int group_port = 4321;
+char local_ip[20] = "192.168.1.100";
+int group_port = 5000;
 unsigned char databuf[BUFSIZE];
 struct stat filestat;
 char filename[200] = "output.jpg";
 int numbytes;
- 
+
 int main(int argc, char *argv[])
 {
-	if(argc > 1) strcpy(filename, argv[1]);
+	if(argc == 4){
+		strcpy(local_ip, argv[1]);
+		sscanf(argv[2], "%d", &group_port);
+		strcpy(filename, argv[3]);
+	}
+	else{
+		printf("wrong arguments\n");
+		exit(1);
+	}
+	// printf("%s %d %s\n", local_ip, group_port, filename);
+
+	printf("[Multicast client without FEC: Prepare to receive file]\n");
 	/////////////// socket setup ///////////////
 	/* Create a datagram socket on which to receive. */
 	sd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -32,7 +43,7 @@ int main(int argc, char *argv[])
 		perror("Opening datagram socket error");
 		exit(1);
 	}
-	else	printf("Opening datagram socket....OK.\n");
+	// else	printf("Opening datagram socket....OK.\n");
 		 
 	/* Enable SO_REUSEADDR to allow multiple instances of this */
 	/* application to receive copies of the multicast datagrams. */
@@ -43,7 +54,7 @@ int main(int argc, char *argv[])
 		close(sd);
 		exit(1);
 	}
-	else	printf("Setting SO_REUSEADDR...OK.\n");
+	// else	printf("Setting SO_REUSEADDR...OK.\n");
 		 
 	/* Bind to the proper port number with the IP address */
 	/* specified as INADDR_ANY. */
@@ -57,7 +68,7 @@ int main(int argc, char *argv[])
 		close(sd);
 		exit(1);
 	}
-	else	printf("Binding datagram socket...OK.\n");
+	// else	printf("Binding datagram socket...OK.\n");
 	 
 	/* Join the multicast group 226.1.1.1 on the local ip
 	 * interface. Note that this IP_ADD_MEMBERSHIP option must be
@@ -72,7 +83,7 @@ int main(int argc, char *argv[])
 		close(sd);
 		exit(1);
 	}
-	else	printf("Adding multicast group...OK.\n");
+	// else	printf("Adding multicast group...OK.\n");
 	
 	/////////////// file operation ///////////////
 	FILE *fp;
@@ -100,6 +111,7 @@ int main(int argc, char *argv[])
 		if(numbytes > 0) {
 			numbytes = fwrite(databuf+4, sizeof(unsigned char), numbytes-4, fp);
 		}
+
 		/* compare seqnum to count, if not the same, then some packets are lost */
 		if(seqnum > count){
 			/* number of lost packets */
@@ -120,6 +132,9 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	printf("Received file size is %ld bytes\n", filestat.st_size);
+	close(sd);
 
+	/* compute lost rate = number of lost packets/(number of lost packets+received packets) */
+	printf("Lost Rate: %.2f%%\n", 100*(float)lost/(float)(lost+recvcount));
 	return 0;
 }
