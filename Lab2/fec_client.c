@@ -15,13 +15,13 @@ struct sockaddr_in localSock;
 struct ip_mreq group;
 int sd;
 char group_ip[20] = "226.1.1.1";
-char local_ip[20] = "192.168.1.100";
+char local_ip[20] = "192.168.208.193";
 int group_port = 4321;
 int datalen;
 char databuf[BUFSIZE];
 struct stat filestat;
-char filename[200] = "output.mp4";
-char org_filename[20] = "4K.mp4";
+char filename[200] = "output.jpg";
+char org_filename[20] = "picture.jpg";
 int numbytes;
 int seqnum = 0;
 int arr[10];
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     // create arrays
     // unsigned char msg_org[n];   // original data message
     unsigned char msg_enc[k];   // encoded/received data message
-    unsigned char msg_dec[5][n];   // decoded data message
+    unsigned char msg_dec[n];   // decoded data message
 
     // CREATE the fec object
     fec q = fec_create(fs,NULL);
@@ -107,26 +107,34 @@ int main(int argc, char *argv[])
 	}
 
 	printf("Reading datagram message...");
-	int count = 0;
+	int recvcount = 0, count = 0, lost = 0;
 	seqnum = 0;
 	/* Read from the socket. */
 	while((numbytes = read(sd, msg_enc, sizeof(msg_enc))) > 0){
-		count++;
-
-		fec_decode(q, n, msg_enc, msg_dec[1]);
-
-		numbytes = sizeof(msg_dec[1]);
-        if(!strncmp(msg_dec[1], "finish", numbytes)){
-			count--;
+		fec_decode(q, n, msg_enc, msg_dec);
+		numbytes = sizeof(msg_dec);
+		if(!strncmp(msg_dec, "finish", numbytes)){
 			fclose(fp);
 			break;  // if finish, break
 		}
+
 		if(numbytes > 0) {
-			numbytes = fwrite(msg_dec[1], sizeof(unsigned char), sizeof(msg_dec[1]), fp);
+			numbytes = fwrite(msg_dec+4, sizeof(unsigned char), sizeof(msg_dec)-4, fp);
 		}
+		seqnum = msg_dec[0] << 24;
+		seqnum += msg_dec[1] << 16;
+		seqnum += msg_dec[2] << 8;
+		seqnum += msg_dec[3];
+		
+		if(seqnum > count){
+			lost += abs(seqnum-count);
+			count = seqnum+1;
+		}
+		else count++;
+		recvcount++;
 	}
 	
-	printf("OK.\nReceived %d packets.\n", count);
+	printf("OK.\nReceived %d packets, lost %d.\n", recvcount, lost);
 
 	if (lstat(filename, &filestat) < 0){
 		exit(1);

@@ -15,7 +15,7 @@ struct sockaddr_in localSock;
 struct ip_mreq group;
 int sd;
 char group_ip[20] = "226.1.1.1";
-char local_ip[20] = "192.168.1.100";
+char local_ip[20] = "192.168.208.193";
 int group_port = 4321;
 int datalen;
 unsigned char databuf[BUFSIZE];
@@ -101,27 +101,24 @@ int main(int argc, char *argv[])
 			fclose(fp);
 			break;  // if finish, break
 		}
-		// fread(file1, sizeof(unsigned char), sizeof(file1), fp1);
-
-		// seqnum = databuf[numbytes-1] - '0';
-		// printf("count %d seqnum %d\n", count, seqnum);
-		// if(count != seqnum) {
-		// 	lost += abs(seqnum-count)-1;
-		// 	printf("count %d seqnum %d\n", count, seqnum);
-		// }
-		// count = seqnum;
-
+		seqnum = databuf[0] << 24;
+		seqnum += databuf[1] << 16;
+		seqnum += databuf[2] << 8;
+		seqnum += databuf[3];
 		if(numbytes > 0) {
-			numbytes = fwrite(databuf, sizeof(unsigned char), numbytes-1, fp);
+			numbytes = fwrite(databuf+4, sizeof(unsigned char), numbytes-4, fp);
 			// unsigned int num_bit_errors = count_bit_errors_array(databuf, file1, BUFSIZE);
     		// if(num_bit_errors != 0) error_count++;
 		}
+		if(seqnum > count){
+			lost += abs(seqnum-count);
+			count = seqnum+1;
+		}
+		else count++;
 		recvcount++;
-		// count++;
-		// if(count > 200) count = 0;
 	}
 	
-	printf("OK.\nReceived %d packets.\n", recvcount);
+	printf("OK.\nReceived %d packets, lost %d.\n", recvcount, lost);
 
 	if (lstat(filename, &filestat) < 0){
 		exit(1);

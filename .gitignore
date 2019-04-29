@@ -5,6 +5,7 @@
 *.mp4
 *.jpg
 *.bin
-Lab2/client
-Lab2/server
-Lab2/liquid-dsp
+Lab2/nofec_client
+Lab2/nofec_server
+Lab2/fec_client
+Lab2/fec_server

@@ -15,12 +15,12 @@ struct in_addr localInterface;
 struct sockaddr_in groupSock;
 int sd;
 char group_ip[20] = "226.1.1.1";
-char local_ip[20] = "192.168.1.100";
+char local_ip[20] = "192.168.208.193";
 int group_port = 4321;
 // char databuf[BUFSIZE] = "Multicast test message.";
 int datalen;
 struct stat filestat;
-char filename[200] = "4K.mp4";
+char filename[200] = "picture.jpg";
 // char filebuf[BUFSIZE];
 int numbytes;
 int seqnum = 0;
@@ -97,13 +97,17 @@ int main (int argc, char *argv[])
 	int count = 0;
 	seqnum = 0;
 	while(!feof(fp)){
-		numbytes = fread(msg_org, sizeof(unsigned char), sizeof(msg_org), fp);
+		msg_org[0] = seqnum >> 24;
+		msg_org[1] = seqnum >> 16;
+		msg_org[2] = seqnum >> 8;
+		msg_org[3] = seqnum;
+		numbytes = fread(msg_org+4, sizeof(unsigned char), sizeof(msg_org)-4, fp);
 
 		//fec coding
 		fec_encode(q, n, msg_org, msg_enc);
 		
 		numbytes = sendto(sd, msg_enc, sizeof(msg_enc), 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
-		
+		seqnum++;
 		count++;
 		if(numbytes < 0)	perror("Sending datagram message error");
 	}
