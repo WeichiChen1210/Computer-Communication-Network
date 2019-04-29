@@ -1,4 +1,3 @@
-/* Send Multicast Datagram code example. */
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -17,20 +16,17 @@ int sd;
 char group_ip[20] = "226.1.1.1";
 char local_ip[20] = "192.168.208.193";
 int group_port = 4321;
-// char databuf[BUFSIZE] = "Multicast test message.";
-int datalen;
 struct stat filestat;
 char filename[200] = "picture.jpg";
-// char filebuf[BUFSIZE];
 int numbytes;
-int seqnum = 0;
+int seqnum = 0, count = 0;
 
 int main (int argc, char *argv[])
 {
 	if(argc > 1)	strcpy(filename, argv[1]);
 	/////////////// fec setup ///////////////
 	// simulation parameters
-    unsigned int n = BUFSIZE;                     // original data length (bytes)
+    unsigned int n = BUFSIZE;               // original data length (bytes)
     fec_scheme fs = LIQUID_FEC_HAMMING74;   // error-correcting scheme
 
     // compute size of encoded message
@@ -39,7 +35,6 @@ int main (int argc, char *argv[])
     // create arrays
     unsigned char msg_org[n];   // original data message
     unsigned char msg_enc[k];   // encoded/received data message
-    // unsigned char msg_dec[n];   // decoded data message
 
     // CREATE the fec object
     fec q = fec_create(fs,NULL);
@@ -57,21 +52,25 @@ int main (int argc, char *argv[])
 	}
 	else	printf("Opening the datagram socket...OK.\n");
 	
-	/* Initialize the group sockaddr structure with a */
-	/* group address of 226.1.1.1 and port 4321. */
+	/* setting group
+	 * Initialize the group sockaddr structure with a
+	 * group address of 226.1.1.1 and port 4321.
+	 */
 	memset((char *) &groupSock, 0, sizeof(groupSock));
-	groupSock.sin_family = AF_INET;
-	groupSock.sin_addr.s_addr = inet_addr(group_ip);
-	groupSock.sin_port = htons(group_port);
+	groupSock.sin_family = AF_INET;						/* AF_INET: IPV4 */
+	groupSock.sin_addr.s_addr = inet_addr(group_ip);	/* inet_addr(): convert ip address to type in_addr_t */
+	groupSock.sin_port = htons(group_port);				/* htons(): convert port to in_port_t */
 			
-	/* Set local interface for outbound multicast datagrams. */
-	/* The IP address specified must be associated with a local, */
-	/* multicast capable interface. */
+	/* Set local interface for outbound multicast datagrams.
+	 * The IP address specified must be associated with a local, 
+	 * multicast capable interface.
+	 */
 	localInterface.s_addr = inet_addr(local_ip);
 
-	// Definition: int setsockopt(int socket, int level, int optname, void *optval, int optlen);
-	// IPPROTO_IP: multicast is ip level and UDP, so use IPPROTO
-	// IP_MULTICAST_IF: set to send message to specific socket (localInterface)
+	/* Definition: int setsockopt(int socket, int level, int optname, void *optval, int optlen);
+	 * IPPROTO_IP: multicast is ip level and UDP, so use IPPROTO
+	 * IP_MULTICAST_IF: set to send message to specific socket (localInterface)
+	 */
 	if(setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, (char *)&localInterface, sizeof(localInterface)) < 0)
 	{
 		perror("Setting local interface error");
@@ -80,13 +79,15 @@ int main (int argc, char *argv[])
 	else	printf("Setting the local interface...OK\n");
 
 	/////////////// file operation ///////////////
+	/* get file information(size) */
 	if (lstat(filename, &filestat) < 0){
 		printf("Cannot open this file.\n");
 		exit(1);
 	}
 	printf("The file size is %ld bytes\n", filestat.st_size);
 	printf("Sending file...");
-	
+
+	/* open file to be read */
 	FILE *fp = fopen(filename, "rb");
 	if(fp == NULL){
         printf("Cannot open this file.\n");
@@ -94,19 +95,22 @@ int main (int argc, char *argv[])
     }
 
 	/////////////// file transfering ///////////////
-	int count = 0;
 	seqnum = 0;
 	while(!feof(fp)){
+		/* set sequence number to the first 4 bytes */
 		msg_org[0] = seqnum >> 24;
 		msg_org[1] = seqnum >> 16;
 		msg_org[2] = seqnum >> 8;
 		msg_org[3] = seqnum;
+		/* read the file and store in the buffer from the 5th byte and for size-4 */
 		numbytes = fread(msg_org+4, sizeof(unsigned char), sizeof(msg_org)-4, fp);
 
-		//fec coding
+		/* fec encoding, get encoded buffer msg_enc */
 		fec_encode(q, n, msg_org, msg_enc);
 		
+		/* send data */
 		numbytes = sendto(sd, msg_enc, sizeof(msg_enc), 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
+		/* increase counters */
 		seqnum++;
 		count++;
 		if(numbytes < 0)	perror("Sending datagram message error");
