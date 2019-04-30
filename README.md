@@ -18,23 +18,24 @@ Steps:
    sudo ldconfig
 4. To unistall: move to the library folder and 
    sudo make uninstall
+
 Compile:
 
-1. With fec files: Compile with arguments " -lm -lc -lliquid". For example: gcc fec_server -o fec_server.c -lm -lc -lliquid.
-2. Others: gcc <src> -o <output file>
+1. With fec files: Compile with arguments " -lm -lc -lliquid". For example: gcc fec_server.c -o fec_server -lm -lc -lliquid.
+2. Others: gcc "src code" -o "output file"
 
 ### Execution
-These files have common kinds of arguements: <IP> <PORT> <filename>.
+These files have common kinds of arguements: "IP" "PORT" "filename".
 For example:
 ./fec_client 127.0.0.1 8080 picture.jpg
 
 1. Unicast: First execute server, it will wait for client's request. The filename of server's arg is the filename to be transfered, while client's is the filename to be named and created.
-./unicast_client <IP> <PORT> <input filename>
-./unicast_server <IP> <PORT> <output filename>
+./unicast_client "IP" "PORT" "input filename"
+./unicast_server "IP" "PORT" "output filename"
     
 2. Multicast: First execute clients, they would wait for nulticast, then execute server, it will start to transfe right away. The filenames are like unicast.
-./nofec_client <IP> <PORT> <input filename>
-./nofec_server <IP> <PORT> <output filename>
+./nofec_client "IP" "PORT" "input filename"
+./nofec_server "IP" "PORT" "output filename"
 
 ### Input
 Input can be many types of files. However, please makesure the input file exists and in the same folder.
