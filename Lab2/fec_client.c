@@ -153,6 +153,8 @@ int main(int argc, char *argv[])
 		/* actual number of received packets */
 		recvcount++;
 	}
+	// DESTROY the fec object
+    fec_destroy(q);
 	
 	printf("OK.\nReceived %d packets, lost %d.\n", recvcount, lost);
 

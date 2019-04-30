@@ -136,6 +136,9 @@ int main (int argc, char *argv[])
 	numbytes = sendto(sd, msg_enc, sizeof(msg_enc), 0, (struct sockaddr*)&groupSock, sizeof(groupSock));
 
 	printf("OK\nSend %d pakcets.\n", count);
+	
+	// DESTROY the fec object
+    fec_destroy(q);
 
 	return 0;
 }
